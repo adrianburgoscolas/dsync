@@ -4,10 +4,6 @@ DSync is a CLI app to sync/backup a folder/file to Google Drive.
 
 ## Table of contents
 
-- [Overview](#overview)
-  - [Specs](#specs)
-  - [Screenshot](#screenshot)
-  - [Link](#link)
 - [My process](#my-process)
   - [Built with](#built-with)
 - [Author](#author)
