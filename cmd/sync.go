@@ -12,20 +12,22 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 
 	"github.com/spf13/cobra"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/drive/v3"
-	"google.golang.org/api/option"
 )
+
+var userHome, _ = os.UserHomeDir()
 
 // Retrieve a token, saves the token, then returns the generated client.
 func getClient(config *oauth2.Config) *http.Client {
 	// The file token.json stores the user's access and refresh tokens, and is
 	// created automatically when the authorization flow completes for the first
 	// time.
-	tokFile := "token.json"
+	tokFile := filepath.Join(userHome, ".dsync/token.json")
 	tok, err := tokenFromFile(tokFile)
 	if err != nil {
 		tok = getTokenFromWeb(config)
@@ -83,23 +85,38 @@ var syncCmd = &cobra.Command{
 or sync/backup the file or directory specified in the args:
  - dsync sync [file/directory]`,
 	Run: func(cmd *cobra.Command, args []string) {
-		ctx := context.Background()
-		b, err := ioutil.ReadFile("~/.dsync/client_secret_654016737032-1jj92r0pcflivhq85nh31fim8fhlr1o7.apps.googleusercontent.com.json")
+		b, err := ioutil.ReadFile(filepath.Join(userHome, ".dsync/client_secret_654016737032-1jj92r0pcflivhq85nh31fim8fhlr1o7.apps.googleusercontent.com.json"))
 		if err != nil {
 			log.Fatalf("Unable to read client secret file: %v", err)
 		}
 
 		// If modifying these scopes, delete your previously saved token.json.
-		config, err := google.ConfigFromJSON(b, drive.DriveMetadataReadonlyScope)
+		config, err := google.ConfigFromJSON(b, drive.DriveFileScope)
 		if err != nil {
 			log.Fatalf("Unable to parse client secret file to config: %v", err)
 		}
 		client := getClient(config)
 
-		srv, err := drive.NewService(ctx, option.WithHTTPClient(client))
+		srv, err := drive.New(client)
 		if err != nil {
 			log.Fatalf("Unable to retrieve Drive client: %v", err)
 		}
+
+		currentDir, err := os.Getwd()
+		if err != nil {
+			log.Fatalf("Unable to get working directory: %v", err)
+		}
+		driveFolderName := filepath.Base(currentDir)
+
+		fileMeta := &drive.File{
+			Name:     driveFolderName,
+			MimeType: "application/vnd.google-apps.folder",
+		}
+		driveFolder, err := srv.Files.Create(fileMeta).Do()
+		if err != nil {
+			log.Fatalf("Unable to create Drive folder: %v", err)
+		}
+		fmt.Println(driveFolder.Id)
 
 	},
 }
