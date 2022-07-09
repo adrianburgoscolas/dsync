@@ -78,7 +78,7 @@ func saveToken(path string, token *oauth2.Token) {
 	json.NewEncoder(f).Encode(token)
 }
 
-//Sync a folder recurrently to google drive.
+//SyncDir sync/backup a folder recurrently to google drive.
 func SyncDir(dir string, parent []string, srv *drive.Service) {
 
 	//read current dir
@@ -126,13 +126,33 @@ func SyncDir(dir string, parent []string, srv *drive.Service) {
 	}
 }
 
+//SyncFile sync/backup a file to Google Drive.
+func SyncFile(file string, srv *drive.Service) {
+	fileName := filepath.Base(file)
+	fileMeta := &drive.File{
+		Name: fileName,
+	}
+	f, err := os.Open(file)
+	if err != nil {
+		log.Fatalf("Unable to open file %q: %v", file, err)
+	}
+	defer f.Close()
+
+	driveFile, err := srv.Files.Create(fileMeta).Media(f).Do()
+	if err != nil {
+		log.Fatalf("Unable to create file %q in Google Drive: %v", fileName, err)
+	}
+	fmt.Printf("Uploaded file %q Id %v to Google Drive\n", file, driveFile.Id)
+}
+
 // syncCmd represents the sync command
 var syncCmd = &cobra.Command{
 	Use:   "sync",
-	Short: "Sync a directory or a file",
-	Long: `Sync/backup the current directory if no argument is passed
-or sync/backup the file or directory specified in the args:
- - dsync sync [file/directory]`,
+	Short: "Sync a directory, a file or all sync tasks",
+	Long: `Sync/backup a directory, a file or all sync tasks added to the sync list:
+ - dsync sync [file/directory] -m | --mode [all/dir/file]
+ if mode flag is set to "all" argument(file or directory) will be ignore
+ and all sync tasks will be executed.`,
 	Args: cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		b, err := ioutil.ReadFile(filepath.Join(userHome, ".dsync/client_secret_654016737032-1jj92r0pcflivhq85nh31fim8fhlr1o7.apps.googleusercontent.com.json"))
@@ -152,21 +172,30 @@ or sync/backup the file or directory specified in the args:
 			log.Fatalf("Unable to retrieve Drive client: %v", err)
 		}
 
-		var dirToSync string
-		if len(args) == 0 {
-			currentDir, err := os.Getwd()
-			if err != nil {
-				log.Fatalf("Unable to get working directory: %v", err)
+		switch syncMode {
+		case "dir":
+			var dirToSync string
+			if len(args) == 0 {
+				currentDir, err := os.Getwd()
+				if err != nil {
+					log.Fatalf("Unable to get working directory: %v", err)
+				}
+				dirToSync = currentDir
+			} else {
+				dirToSync, err = filepath.Abs(args[0])
+				if err != nil {
+					log.Fatalf("Unable to get the directory %q absolute path: %v", args[0], err)
+				}
 			}
-			dirToSync = currentDir
-		} else {
-			dirToSync = args[0]
-		}
 
-		SyncDir(dirToSync, nil, srv)
+			SyncDir(dirToSync, nil, srv)
+
+		}
 
 	},
 }
+
+var syncMode string
 
 func init() {
 	rootCmd.AddCommand(syncCmd)
@@ -179,5 +208,6 @@ func init() {
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// syncCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	syncCmd.Flags().StringVarP(&syncMode, "mode", "m", "", "Sync mode(required)")
+	syncCmd.MarkFlagRequired("mode")
 }
