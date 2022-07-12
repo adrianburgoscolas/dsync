@@ -1,1 +1,4 @@
 1- resolve entering files with relative path - DONE
+2- fix not to resync a root folder - DONE
+3- remove unneeded verbosity from sync command
+4- complete the other commands

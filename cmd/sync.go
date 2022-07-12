@@ -16,6 +16,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"regexp"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -83,29 +84,59 @@ func saveToken(path string, token *oauth2.Token) {
 
 //SyncDir sync/backup a folder recurrently to google drive.
 func SyncDir(dir string, parent []string, srv *drive.Service) {
-	//read current dir
+
+	driveFolderName := filepath.Base(dir)
+	dirDsyncFile, err := os.Open(path.Dir(dir) + "/." + driveFolderName + ".dsync")
+	var driveFolderId []string
+	if errors.Is(err, os.ErrNotExist) {
+		folderMeta := &drive.File{
+			Name:     driveFolderName,
+			MimeType: "application/vnd.google-apps.folder",
+			Parents:  parent,
+		}
+		driveFolder, err := srv.Files.Create(folderMeta).Do()
+		if err != nil {
+			log.Fatalf("Unable to create Drive folder: %v", err)
+		}
+		driveFolderId = append(driveFolderId, driveFolder.Id)
+		dirDsyncFile, err := os.Create(path.Dir(dir) + "/." + driveFolderName + ".dsync")
+		if err != nil {
+			log.Fatalf("Unable to create file %q: %v\n", path.Dir(dir)+"/."+driveFolderName+".dsync", err)
+		}
+
+		if _, err := dirDsyncFile.WriteString(driveFolder.Id); err != nil {
+			log.Fatalf("Unable to write to %q: %v", path.Dir(dir)+"/."+driveFolderName+".dsync", err)
+		}
+	} else {
+		b := make([]byte, 16)
+		var byteSlc []byte
+		for {
+			n, err := dirDsyncFile.Read(b)
+			if n != 0 {
+				byteSlc = append(byteSlc, b[:n]...)
+			}
+			if err != nil {
+				break
+			}
+		}
+		driveFolderId = append(driveFolderId, string(byteSlc))
+	}
+	defer dirDsyncFile.Close()
+
 	currentDirFiles, err := os.ReadDir(dir)
 	if err != nil {
 		log.Fatalf("Unable to read dir: %v", err)
 	}
 
-	driveFolderName := filepath.Base(dir)
-
-	folderMeta := &drive.File{
-		Name:     driveFolderName,
-		MimeType: "application/vnd.google-apps.folder",
-		Parents:  parent,
-	}
-	driveFolder, err := srv.Files.Create(folderMeta).Do()
-	if err != nil {
-		log.Fatalf("Unable to create Drive folder: %v", err)
-	}
-
+	reg := regexp.MustCompile(`^\..+|.+~$`)
 	for _, file := range currentDirFiles {
+		if reg.MatchString(file.Name()) {
+			continue
+		}
 		if file.IsDir() {
-			SyncDir(path.Join(dir, file.Name()), []string{driveFolder.Id}, srv)
+			SyncDir(path.Join(dir, file.Name()), driveFolderId, srv)
 		} else {
-			SyncFile(path.Join(dir, file.Name()), []string{driveFolder.Id}, srv)
+			SyncFile(path.Join(dir, file.Name()), driveFolderId, srv)
 		}
 	}
 }
