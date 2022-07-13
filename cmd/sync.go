@@ -207,21 +207,19 @@ func ChkSumFile(file string) bool {
 	}
 
 	checksumHash := make([]byte, 64)
-	n, err := chkSumFileHandle.Read(checksumHash)
-	if err != nil {
+	if _, err := chkSumFileHandle.Read(checksumHash); err != nil {
 		log.Fatalf("Unable to read checksum file hash: %v\n", err)
 	}
-	fmt.Printf("Readed %v bytes from file %v\n", n, chkSumFile)
+	//fmt.Printf("Readed %v bytes from file %v\n", n, chkSumFile)
 	fileData, err := os.ReadFile(file)
 	if err != nil {
 		log.Fatalf("Unable to read file %q: %v\n", file, err)
 	}
 	fileHash := sha256.New()
-	hashBytes, err := fileHash.Write(fileData)
-	if err != nil {
+	if _, err := fileHash.Write(fileData); err != nil {
 		log.Fatalf("Unable to write data: %v\n", err)
 	}
-	fmt.Printf("Hashing %v bytes from %v\n", hashBytes, file)
+	//fmt.Printf("Hashing %v bytes from %v\n", hashBytes, file)
 	hashSlc := fmt.Sprintf("%x", fileHash.Sum(nil))
 	if string(checksumHash) == hashSlc {
 		return true
@@ -247,11 +245,10 @@ func CreateChkSum(file, driveFileId string) {
 		log.Fatalf("Unable to write data to hash: %v\n", err)
 	}
 
-	chkSumBytes, err := fmt.Fprintf(chkSumFileHandle, "%x %s", fileHash.Sum(nil), driveFileId)
-	if err != nil {
+	if _, err := fmt.Fprintf(chkSumFileHandle, "%x %s", fileHash.Sum(nil), driveFileId); err != nil {
 		log.Fatalf("Unable to write data to checksum file: %v\n", err)
 	}
-	fmt.Printf("Writed %v bytes to checksum file\n", chkSumBytes)
+	//fmt.Printf("Writed %v bytes to checksum file\n", chkSumBytes)
 
 }
 
@@ -267,9 +264,7 @@ If a directory is specified it will be synced recurrently.`,
 
 		//Time benchmarking
 		startTime := time.Now()
-		defer func() {
-			fmt.Printf("Time enlapsed: %v\n", time.Since(startTime))
-		}()
+		defer fmt.Printf("Time enlapsed: %v\n", time.Since(startTime))
 		b, err := ioutil.ReadFile(filepath.Join(userHome, ".dsync/client_secret_654016737032-1jj92r0pcflivhq85nh31fim8fhlr1o7.apps.googleusercontent.com.json"))
 		if err != nil {
 			log.Fatalf("Unable to read client secret file: %v", err)
