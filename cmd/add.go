@@ -6,6 +6,10 @@ package cmd
 
 import (
 	"fmt"
+	"log"
+	"os"
+	"path"
+	"path/filepath"
 
 	"github.com/spf13/cobra"
 )
@@ -13,15 +17,23 @@ import (
 // addCmd represents the add command
 var addCmd = &cobra.Command{
 	Use:   "add",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "Add a file|dir to the tasks list",
+	Long: `Add a file or a directory to the sync tasks list:
+"dsync add [file|dir]".`,
+	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("add called")
+		fileToAdd, err := filepath.Abs(args[0])
+		if err != nil {
+			log.Fatalf("Unable to get file or directory %q: %v", args[0], err)
+		}
+		listFile, err := os.OpenFile(path.Join(UserHome, ".dsync/tasks.dsync"), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		if err != nil {
+			log.Fatalf("Unable to update/create tasks list file: %v", err)
+		}
+		defer listFile.Close()
+		if _, err := fmt.Fprintf(listFile, "%v\n", fileToAdd); err != nil {
+			log.Fatalf("Unable to write to tasks list file: %v", err)
+		}
 	},
 }
 

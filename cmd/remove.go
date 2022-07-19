@@ -6,6 +6,11 @@ package cmd
 
 import (
 	"fmt"
+	"log"
+	"os"
+	"path"
+	"path/filepath"
+	"strings"
 
 	"github.com/spf13/cobra"
 )
@@ -13,15 +18,23 @@ import (
 // removeCmd represents the remove command
 var removeCmd = &cobra.Command{
 	Use:   "remove",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "Remove a file|dir from the tasks list",
+	Long: `Remove a file or a directory from the sync tasks list:
+"dsync remove [file|dir]".`,
+	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("remove called")
+		fileToRemove, err := filepath.Abs(args[0])
+		if err != nil {
+			log.Fatalf("Unable to get file or directory %q: %v", args[0], err)
+		}
+		listFileData, err := os.ReadFile(path.Join(UserHome, ".dsync/tasks.dsync"))
+		if err != nil {
+			log.Fatalf("Unable to read tasks list file: %v", err)
+		}
+		newList := strings.Replace(string(listFileData), fmt.Sprintf("%s\n", fileToRemove), "", -1)
+		if err := os.WriteFile(path.Join(UserHome, ".dsync/tasks.dsync"), []byte(newList), 0644); err != nil {
+			log.Fatalf("Unable to update tasks list file: %v", err)
+		}
 	},
 }
 

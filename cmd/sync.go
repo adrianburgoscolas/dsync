@@ -25,14 +25,14 @@ import (
 	"google.golang.org/api/drive/v3"
 )
 
-var userHome, _ = os.UserHomeDir()
+var UserHome, _ = os.UserHomeDir()
 
 // Retrieve a token, saves the token, then returns the generated client.
 func getClient(config *oauth2.Config) *http.Client {
 	// The file token.json stores the user's access and refresh tokens, and is
 	// created automatically when the authorization flow completes for the first
 	// time.
-	tokFile := filepath.Join(userHome, ".dsync/token.json")
+	tokFile := filepath.Join(UserHome, ".dsync/token.json")
 	tok, err := tokenFromFile(tokFile)
 	if err != nil {
 		tok = getTokenFromWeb(config)
@@ -252,6 +252,28 @@ func CreateChkSum(file, driveFileId string) {
 
 }
 
+//GetGoogleService return a Google Drive service handler.
+func GetDriveService() *drive.Service {
+
+	b, err := ioutil.ReadFile(filepath.Join(UserHome, ".dsync/client_secret_654016737032-1jj92r0pcflivhq85nh31fim8fhlr1o7.apps.googleusercontent.com.json"))
+	if err != nil {
+		log.Fatalf("Unable to read client secret file: %v", err)
+	}
+
+	// If modifying these scopes, delete your previously saved token.json.
+	config, err := google.ConfigFromJSON(b, drive.DriveFileScope)
+	if err != nil {
+		log.Fatalf("Unable to parse client secret file to config: %v", err)
+	}
+	client := getClient(config)
+
+	srv, err := drive.New(client)
+	if err != nil {
+		log.Fatalf("Unable to retrieve Drive client: %v", err)
+	}
+	return srv
+}
+
 // syncCmd represents the sync command
 var syncCmd = &cobra.Command{
 	Use:   "sync [file|dir]",
@@ -265,22 +287,6 @@ If a directory is specified it will be synced recurrently.`,
 		//Time benchmarking
 		startTime := time.Now()
 		defer fmt.Printf("Time enlapsed: %v\n", time.Since(startTime))
-		b, err := ioutil.ReadFile(filepath.Join(userHome, ".dsync/client_secret_654016737032-1jj92r0pcflivhq85nh31fim8fhlr1o7.apps.googleusercontent.com.json"))
-		if err != nil {
-			log.Fatalf("Unable to read client secret file: %v", err)
-		}
-
-		// If modifying these scopes, delete your previously saved token.json.
-		config, err := google.ConfigFromJSON(b, drive.DriveFileScope)
-		if err != nil {
-			log.Fatalf("Unable to parse client secret file to config: %v", err)
-		}
-		client := getClient(config)
-
-		srv, err := drive.New(client)
-		if err != nil {
-			log.Fatalf("Unable to retrieve Drive client: %v", err)
-		}
 
 		fileToSync, err := filepath.Abs(args[0])
 		if err != nil {
@@ -290,6 +296,8 @@ If a directory is specified it will be synced recurrently.`,
 		if err != nil {
 			log.Fatalf("Unable to get file or dir %q stats: %v", args[0], err)
 		}
+
+		srv := GetDriveService()
 
 		switch {
 		case fileStats.Mode().IsDir():

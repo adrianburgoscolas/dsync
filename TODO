@@ -1,4 +1,11 @@
-1- resolve entering files with relative path - DONE
-2- fix not to resync a root folder - DONE
-3- complete the other commands
-4- remove unneeded verbosity from sync command
+- resolve entering files with relative path - DONE
+- fix not to resync a root folder - DONE
+- complete "sync" command DONE
+- complete "all" command DONE
+- complete "add" command DONE
+- complete remove"" command DONE
+- complete "list" command
+- complete "schedule" command
+- remove unneeded verbosity from sync command - DONE
+- handle token expired error
+- launch a http server to catch 0Auth token
