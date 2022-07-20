@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"path"
 
 	"github.com/spf13/cobra"
 )
@@ -20,7 +19,7 @@ var listCmd = &cobra.Command{
 	Long: `List all sync tasks:
 "dsync list".`,
 	Run: func(cmd *cobra.Command, args []string) {
-		listFileData, err := os.ReadFile(path.Join(UserHome, ".dsync/tasks.dsync"))
+		listFileData, err := os.ReadFile(TasksFile)
 		if err != nil {
 			log.Fatalf("Unable to read tasks list file: %v", err)
 		}

@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"path"
 	"path/filepath"
 
 	"github.com/spf13/cobra"
@@ -26,7 +25,7 @@ var addCmd = &cobra.Command{
 		if err != nil {
 			log.Fatalf("Unable to get file or directory %q: %v", args[0], err)
 		}
-		listFile, err := os.OpenFile(path.Join(UserHome, ".dsync/tasks.dsync"), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		listFile, err := os.OpenFile(TasksFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 		if err != nil {
 			log.Fatalf("Unable to update/create tasks list file: %v", err)
 		}

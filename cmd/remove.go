@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"path"
 	"path/filepath"
 	"strings"
 
@@ -27,12 +26,12 @@ var removeCmd = &cobra.Command{
 		if err != nil {
 			log.Fatalf("Unable to get file or directory %q: %v", args[0], err)
 		}
-		listFileData, err := os.ReadFile(path.Join(UserHome, ".dsync/tasks.dsync"))
+		listFileData, err := os.ReadFile(TasksFile)
 		if err != nil {
 			log.Fatalf("Unable to read tasks list file: %v", err)
 		}
 		newList := strings.Replace(string(listFileData), fmt.Sprintf("%s\n", fileToRemove), "", -1)
-		if err := os.WriteFile(path.Join(UserHome, ".dsync/tasks.dsync"), []byte(newList), 0644); err != nil {
+		if err := os.WriteFile(TasksFile, []byte(newList), 0644); err != nil {
 			log.Fatalf("Unable to update tasks list file: %v", err)
 		}
 	},

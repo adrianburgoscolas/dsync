@@ -7,18 +7,20 @@ package cmd
 import (
 	"log"
 	"os"
+	"path"
 	"strings"
 
 	"github.com/spf13/cobra"
 )
 
-const tasksFile = "/home/adrian/.dsync/tasks"
+//tasks list file used for all commands
+var TasksFile = path.Join(UserHome, ".dsync/tasks.dsync")
 
 //GetTasks returns a slice of all tasks to sync.
 func GetTasks() []string {
-	tasks, err := os.ReadFile(tasksFile)
+	tasks, err := os.ReadFile(TasksFile)
 	if err != nil {
-		log.Fatalf("Unable to read file %q: %v", tasksFile, err)
+		log.Fatalf("Unable to read file %q: %v", TasksFile, err)
 	}
 	return strings.Fields(string(tasks))
 }
