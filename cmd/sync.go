@@ -14,6 +14,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/exec"
 	"path"
 	"path/filepath"
 	"regexp"
@@ -44,14 +45,23 @@ func getClient(config *oauth2.Config) *http.Client {
 // Request a token from the web, then returns the retrieved token.
 func getTokenFromWeb(config *oauth2.Config) *oauth2.Token {
 	authURL := config.AuthCodeURL("state-token", oauth2.AccessTypeOffline)
-	fmt.Printf("Go to the following link in your browser then type the "+
-		"authorization code: \n%v\n", authURL)
-
+	exec.Command("firefox", authURL).Start()
+	fmt.Println("Please go to your browser to grant DSync App access to your Drive")
+	tokenChannel := make(chan string)
 	var authCode string
-	if _, err := fmt.Scan(&authCode); err != nil {
-		log.Fatalf("Unable to read authorization code %v", err)
-	}
-
+	//launch a web server to get authorization code from OAuth
+	http.HandleFunc("/", func(w http.ResponseWriter, res *http.Request) {
+		if _, err := fmt.Fprint(w, "You can close this tab and return to your DSync app"); err != nil {
+			log.Fatalf("Unable to send response to web auth page: %v", err)
+		}
+		tokenChannel <- res.URL.Query().Get("code")
+	})
+	go func() {
+		if err := http.ListenAndServe(":8080", nil); err != nil {
+			log.Fatalf("Unable to read authorization code %v", err)
+		}
+	}()
+	authCode = <-tokenChannel
 	tok, err := config.Exchange(context.TODO(), authCode)
 	if err != nil {
 		log.Fatalf("Unable to retrieve token from web %v", err)
@@ -253,7 +263,7 @@ func CreateChkSum(file, driveFileId string) {
 }
 
 //GetGoogleService return a Google Drive service handler.
-func GetDriveService() *drive.Service {
+func GetDriveService() (*drive.Service, error) {
 
 	b, err := ioutil.ReadFile(filepath.Join(UserHome, ".dsync/client_secret_654016737032-1jj92r0pcflivhq85nh31fim8fhlr1o7.apps.googleusercontent.com.json"))
 	if err != nil {
@@ -271,7 +281,7 @@ func GetDriveService() *drive.Service {
 	if err != nil {
 		log.Fatalf("Unable to retrieve Drive client: %v", err)
 	}
-	return srv
+	return srv, nil
 }
 
 // syncCmd represents the sync command

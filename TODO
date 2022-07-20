@@ -4,8 +4,7 @@
 - complete "all" command DONE
 - complete "add" command DONE
 - complete remove"" command DONE
-- complete "list" command
-- complete "schedule" command
+- complete "list" command DONE
 - remove unneeded verbosity from sync command - DONE
-- handle token expired error
 - launch a http server to catch 0Auth token
+- handle token expired error(issue1)
