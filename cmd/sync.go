@@ -263,7 +263,7 @@ func CreateChkSum(file, driveFileId string) {
 }
 
 //GetGoogleService return a Google Drive service handler.
-func GetDriveService() (*drive.Service, error) {
+func GetDriveService() *drive.Service {
 
 	b, err := ioutil.ReadFile(filepath.Join(UserHome, ".dsync/client_secret_654016737032-1jj92r0pcflivhq85nh31fim8fhlr1o7.apps.googleusercontent.com.json"))
 	if err != nil {
@@ -281,7 +281,7 @@ func GetDriveService() (*drive.Service, error) {
 	if err != nil {
 		log.Fatalf("Unable to retrieve Drive client: %v", err)
 	}
-	return srv, nil
+	return srv
 }
 
 // syncCmd represents the sync command

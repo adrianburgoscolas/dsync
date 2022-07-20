@@ -5,6 +5,6 @@
 - complete "add" command DONE
 - complete remove"" command DONE
 - complete "list" command DONE
-- remove unneeded verbosity from sync command - DONE
-- launch a http server to catch 0Auth token
+- remove unneeded verbosity from sync command DONE
+- launch a http server to catch 0Auth token DONE
 - handle token expired error(issue1)

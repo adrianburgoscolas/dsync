@@ -21,6 +21,7 @@ var addCmd = &cobra.Command{
 "dsync add [file|dir]".`,
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
+		GetDriveService()
 		fileToAdd, err := filepath.Abs(args[0])
 		if err != nil {
 			log.Fatalf("Unable to get file or directory %q: %v", args[0], err)
