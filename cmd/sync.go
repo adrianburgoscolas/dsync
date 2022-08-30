@@ -45,8 +45,8 @@ func getClient(config *oauth2.Config) *http.Client {
 // Request a token from the web, then returns the retrieved token.
 func getTokenFromWeb(config *oauth2.Config) *oauth2.Token {
 	authURL := config.AuthCodeURL("state-token", oauth2.AccessTypeOffline)
-	exec.Command("firefox", authURL).Start()
-	fmt.Println("Please go to your browser to grant DSync App access to your Drive")
+	exec.Command("xdg-open", authURL).Start()
+	fmt.Println("Please go to your browser to grant DSync access to your Google Drive")
 	tokenChannel := make(chan string)
 	var authCode string
 	//launch a web server to get authorization code from OAuth
@@ -275,13 +275,13 @@ func CreateChkSum(file, driveFileId string) {
 
 //GetGoogleService return a Google Drive service handler.
 func GetDriveService() *drive.Service {
-
-	b, err := ioutil.ReadFile(filepath.Join(UserHome, ".dsync/client_secret_654016737032-1jj92r0pcflivhq85nh31fim8fhlr1o7.apps.googleusercontent.com.json"))
+	//using configuration json file while in development
+	b, err := ioutil.ReadFile(filepath.Join(UserHome, ".dsync_dev/client_secret_654016737032-d7mq9oms5vjt5048ehhsh9rauuvjcms8.apps.googleusercontent.com.json"))
 	if err != nil {
 		log.Fatalf("Unable to read client secret file: %v", err)
 	}
 
-	// If modifying these scopes, delete your previously saved token.json.
+	//If modifying these scopes, delete your previously saved token.json.
 	config, err := google.ConfigFromJSON(b, drive.DriveFileScope)
 	if err != nil {
 		log.Fatalf("Unable to parse client secret file to config: %v", err)

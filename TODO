@@ -7,5 +7,7 @@
 - complete "list" command DONE
 - remove unneeded verbosity from sync command DONE
 - launch a http server to catch 0Auth token DONE
-- handle token expired error(issue1)
+- configure the google client manualy DONE
+- add "schedule" command, should add a scheduled task to crontab to run all tasks added to the batch
+- "list" command should show all tasks and the scheduled frecuency
 - test for some days
