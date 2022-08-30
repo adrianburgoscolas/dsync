@@ -8,6 +8,7 @@
 - remove unneeded verbosity from sync command DONE
 - launch a http server to catch 0Auth token DONE
 - configure the google client manualy DONE
-- add "schedule" command, should add a scheduled task to crontab to run all tasks added to the batch
+- add "schedule" command, should add a scheduled task to crontab to run all tasks added to the batch DONE
+- add "authorize" command DONE
 - "list" command should show all tasks and the scheduled frecuency
 - test for some days

@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"os/exec"
+	"strings"
 
 	"github.com/spf13/cobra"
 )
@@ -23,7 +25,19 @@ var listCmd = &cobra.Command{
 		if err != nil {
 			log.Fatalf("Unable to read tasks list file: %v", err)
 		}
+		fmt.Println("Tasks List:")
 		fmt.Println(string(listFileData))
+		listCrontab := exec.Command("crontab", "-l")
+		filterCrontab := exec.Command("grep", "dsync")
+
+		filterCrontab.Stdin, _ = listCrontab.StdoutPipe()
+
+		listCrontab.Start()
+		filterOut, _ := filterCrontab.Output()
+		listCrontab.Wait()
+
+		fmt.Printf("Tasks runs every %v minutes.\n", strings.Fields(string(filterOut))[0][2:])
+
 	},
 }
 
