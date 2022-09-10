@@ -5,6 +5,10 @@ Copyright © 2022 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
+	"log"
+	"os"
+	"path"
+
 	"github.com/spf13/cobra"
 )
 
@@ -15,6 +19,10 @@ var authorizeCmd = &cobra.Command{
 	Long: `Get authorization to use user Google Drive:
 "dsync authorize".`,
 	Run: func(cmd *cobra.Command, args []string) {
+		home := os.Getenv("HOME")
+		if err := os.Remove(path.Join(home, ".dsync/token.json")); err != nil {
+			log.Fatal(err)
+		}
 		GetDriveService()
 	},
 }

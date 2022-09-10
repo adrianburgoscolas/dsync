@@ -6,8 +6,10 @@ package cmd
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
+	"path"
 
 	"github.com/spf13/cobra"
 )
@@ -20,6 +22,17 @@ var scheduleCmd = &cobra.Command{
 dsync schedule [minutes] [-d|--del].`,
 	Args: cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
+		//create crontab command file
+		home := os.Getenv("HOME")
+		if err := os.Mkdir(path.Join(home, ".dsync"), 0750); err != nil && !os.IsExist(err) {
+			log.Fatal(err)
+		}
+		if err := os.WriteFile(path.Join(home, ".dsync", "dsync.sh"), []byte(`#!/bin/zsh
+. $HOME/.zshrc
+dsync all
+`), 0750); err != nil {
+			log.Fatal(err)
+		}
 		//remove any dsync entry in crontab
 		listCrontab := exec.Command("crontab", "-l")
 		filterCrontab := exec.Command("grep", "-v", "dsync")
@@ -38,12 +51,12 @@ dsync schedule [minutes] [-d|--del].`,
 			return
 		}
 		//add a dsync entry in crontab
-		home := os.Getenv("HOME")
 		listOldCrontab := exec.Command("crontab", "-l")
 		updateCrontab := exec.Command("crontab", "-")
 
 		list, _ := listOldCrontab.Output()
-		addNewCommand := exec.Command("echo", fmt.Sprintf("%v*/%v * * * * . %v/.zshrc; dsync all", string(list), args[0], home))
+
+		addNewCommand := exec.Command("echo", fmt.Sprintf("%v*/%v * * * * %v/.dsync/dsync.sh", string(list), args[0], home))
 
 		updateCrontab.Stdin, _ = addNewCommand.StdoutPipe()
 
