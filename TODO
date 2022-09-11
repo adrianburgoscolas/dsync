@@ -10,5 +10,5 @@
 - configure the google client manualy DONE
 - add "schedule" command, should add a scheduled task to crontab to run all tasks added to the batch DONE
 - add "authorize" command DONE
-- "list" command should show all tasks and the scheduled frecuency
+- "list" command should show all tasks and the scheduled frecuency DONE
 - test for some days

@@ -36,7 +36,12 @@ var listCmd = &cobra.Command{
 		filterOut, _ := filterCrontab.Output()
 		listCrontab.Wait()
 
-		fmt.Printf("Tasks runs every %v minutes.\n", strings.Fields(string(filterOut))[0][2:])
+		if string(filterOut) == "" {
+			fmt.Println("No task scheduled")
+			return
+		}
+		task := strings.Fields(string(filterOut))[0][2:]
+		fmt.Printf("Tasks runs every %v minutes.\n", task)
 
 	},
 }
