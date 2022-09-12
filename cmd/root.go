@@ -16,7 +16,10 @@ var rootCmd = &cobra.Command{
 	Short: "Dsync keeps your files and folder in your Google Drive",
 	Long: `Dsync keeps syncroniced your files and folders
 in your Google Drive, you can make a list of tasks(several files and folders),
-add, list and remove tasks from it and run all the syncs with only one command.`,
+add, list and remove tasks from it and run all the syncs with only one command.
+If your files stop been synced, run the app manualy 'dsync all', 
+if you get a token error run 'dsync authorize' to fix it, 
+otherwise check the error message.`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	// Run: func(cmd *cobra.Command, args []string) { },

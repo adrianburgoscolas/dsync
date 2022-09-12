@@ -33,6 +33,7 @@ var allCmd = &cobra.Command{
 "dsync all"
 You can list all sync tasks by using:
 "dsync list" command.`,
+	Args: cobra.ExactArgs(0),
 	Run: func(cmd *cobra.Command, args []string) {
 		tasksSlice := GetTasks()
 		for _, fileToSync := range tasksSlice {
