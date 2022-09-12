@@ -19,7 +19,8 @@ var scheduleCmd = &cobra.Command{
 	Use:   "schedule",
 	Short: "Schedule an interval in minutes to run the task list",
 	Long: `Schedule an interval in minutes to run the task list:
-dsync schedule [minutes] [-d|--del].`,
+"dsync schedule [minutes] [-d|--del]"
+If [-d|-del] flag is entered, [minutes] argument will be ignored.`,
 	Args: cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		//create crontab command file
@@ -51,6 +52,9 @@ dsync all
 			return
 		}
 		//add a dsync entry in crontab
+		if len(args) == 0 {
+			log.Fatalln("Error, missing 'minutes' argument")
+		}
 		listOldCrontab := exec.Command("crontab", "-l")
 		updateCrontab := exec.Command("crontab", "-")
 
